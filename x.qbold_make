@@ -1,0 +1,51 @@
+#!/bin/csh
+# Alan Stone 2016
+# make qBOLD parameter maps (R2', DBV, OEF & [dHb]) from FLAIR-GASE data
+
+
+# check the number of inputs
+if ( ${#argv} != 5 ) then
+    echo usage: x.qbold_make fname start_tau delta_tau end_tau spin_echo_id
+    echo e.g. x.qbold_make ase.nii.gz -16 8 64 2 
+    echo - fname is the name of the nifti file ie ase.nii.gz
+    echo - start_tau [ms] is the value of tau for first volume
+    echo - delta_tau [ms] is tau step size
+    echo - end_tau [ms] is the value of tau for last volume
+    echo - spin_echo_id is volume index of spin-echo [NB starts at 0]
+    exit
+endif
+
+echo Running x.qbold_make ase.nii.gz $1 $2 $3 $4 $5 ...
+
+## Set parameters
+set ase_fname = $1  # ASE filename
+set start_tau = $2  # [ms] value of tau for first volume
+set delta_tau = $3  # [ms] tau step size
+set end_tau =   $4  # [ms] value of tau for last volume
+set spin_echo_id = $5 # volume index of spin-echo [NB starts at 0]
+set viewer = 1     # fslview to check BET's and Reg's ... 0 is off
+
+# make directory
+set outdir = qbold_pmaps
+mkdir $outdir
+
+echo ... running registrations and brain extractions ...
+## Registration & brain extraction
+# spin echo
+fslroi $ase_fname $outdir/se.nii.gz $spin_echo_id 1
+# motion correction
+mcflirt -cost mutualinfo -dof 6 -reffile $outdir/se.nii.gz -in $ase_fname -out $outdir/mc.$ase_fname
+# mask
+bet $outdir/se.nii.gz $outdir/brain.se.nii.gz -m -f 0.3
+# apply mask to volreg'd files
+fslmaths $outdir/mc.$ase_fname -mul $outdir/brain.se_mask.nii.gz $outdir/brain.mc.$ase_fname
+# visually check bet
+if ($viewer == 1) fslview $outdir/brain.mc.$ase_fname $outdir/brain.se_mask.nii.gz
+
+echo ... making parameter maps in MatLab ...
+## Make parameter maps in MatLab
+cd $outdir
+/Applications/MATLAB_R2011a.app/bin/matlab -nosplash -nodesktop -r "ase_qbold_3d('brain.mc.$ase_fname',$start_tau,$delta_tau,$end_tau,1); exit"
+cd ..
+
+echo ... qBOLD parameter maps output to $outdir

@@ -1,0 +1,74 @@
+#!/bin/csh
+# Alan Stone 2016
+
+if ( ${#argv} != 2 ) then
+	echo usage: x.zaverage ase_in_filename ase_out_filename
+	echo e.g. x.zaverage images_004_npbep2dasestdavic1001.nii.gz ase.nii.gz
+    echo - note that this is set to average over 4 sub-slices
+	exit
+endif
+
+echo Running x.zaverage on $1 ...
+
+## Calculator ... not sure if this is used
+alias calc 'awk "BEGIN{ print \!* }" '
+# When calling calc DO NOT escape "*":
+# Example:    calc (3+5)*4/5
+
+## Make temporary output directory
+set outdir = killme.zaverage_out
+mkdir $outdir
+
+## Calculate slice numbers
+# number of slices
+set nz = `fslval $1 dim3`
+# slice number beginning at 0
+set nz_zerod = `expr $nz - 1`
+# new number of slices after averaging
+set new_nz = `expr $nz / 4`
+# new_slices after averaging
+set new_nz_zerod = `expr $new_nz - 1`
+
+## Split GESEPI image into seperate slices
+fslslice $1 $outdir/killme.
+
+# slice counters for loop
+set count = 0
+set count_za = `printf "%04d"  0`
+set count_zb = `printf "%04d"  1`
+set count_zc = `printf "%04d"  2`
+set count_zd = `printf "%04d"  3`
+
+# Mean over blocks of 4 slices
+while ( $count <= $new_nz_zerod )
+
+    echo  ... Averaging sub-slices in slab $count ...
+
+    ## Change the slice thickness (dz) in first slice ($count) header and copy to others
+    fslhd -x $outdir/killme._slice_$count_za.nii.gz > $outdir/tmp_hdr_$count.txt
+    sed "s/dz =.*/dz = \'5\'/" $outdir/tmp_hdr_$count.txt > $outdir/hdr_$count.txt
+    fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_za.nii.gz
+    fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_zb.nii.gz
+    fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_zc.nii.gz
+    fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_zd.nii.gz
+
+    fslmaths $outdir/killme._slice_$count_za.nii.gz \
+        -add $outdir/killme._slice_$count_zb.nii.gz \
+        -add $outdir/killme._slice_$count_zc.nii.gz \
+        -add $outdir/killme._slice_$count_zd.nii.gz \
+        -div 4 \
+        $outdir/killme.zmean_slice_$count.nii.gz
+
+    @ count++
+    set count_za = `echo $count_za | awk '{ printf("%04d\n", $1 + 4) }'`
+    set count_zb = `echo $count_zb | awk '{ printf("%04d\n", $1 + 4) }'`
+    set count_zc = `echo $count_zc | awk '{ printf("%04d\n", $1 + 4) }'`
+    set count_zd = `echo $count_zd | awk '{ printf("%04d\n", $1 + 4) }'`
+
+end
+
+fslmerge -z $2 $outdir/killme.zmean_slice_*
+
+rm -r $outdir
+
+echo ... Outputting z-averaged dataset $2
