@@ -15,7 +15,7 @@ if ( ${#argv} != 5 ) then
     exit
 endif
 
-echo Running x.qbold_make ase.nii.gz $1 $2 $3 $4 $5 ...
+echo Running x.qbold_make $1 $2 $3 $4 $5 ...
 
 ## Set parameters
 set ase_fname = $1  # ASE filename
@@ -45,7 +45,7 @@ if ($viewer == 1) fslview $outdir/brain.mc.$ase_fname $outdir/brain.se_mask.nii.
 echo ... making parameter maps in MatLab ...
 ## Make parameter maps in MatLab
 cd $outdir
-/Applications/MATLAB_R2011a.app/bin/matlab -nosplash -nodesktop -r "ase_qbold_3d('brain.mc.$ase_fname',$start_tau,$delta_tau,$end_tau,1); exit"
+/Applications/MATLAB_R2015b.app/bin/matlab -nosplash -nodesktop -r "ase_qbold_3d('brain.mc.$ase_fname',$start_tau,$delta_tau,$end_tau,1); exit"
 cd ..
 
 echo ... qBOLD parameter maps output to $outdir

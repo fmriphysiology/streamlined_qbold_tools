@@ -1,5 +1,6 @@
 #!/bin/csh
 # Alan Stone 2016
+# averages the sub-slices acquired using GESEPI
 
 if ( ${#argv} != 2 ) then
 	echo usage: x.zaverage ase_in_filename ase_out_filename
@@ -33,7 +34,7 @@ set new_nz_zerod = `expr $new_nz - 1`
 fslslice $1 $outdir/killme.
 
 # slice counters for loop
-set count = 0
+set count = `printf "%04d"  0`
 set count_za = `printf "%04d"  0`
 set count_zb = `printf "%04d"  1`
 set count_zc = `printf "%04d"  2`
@@ -59,7 +60,7 @@ while ( $count <= $new_nz_zerod )
         -div 4 \
         $outdir/killme.zmean_slice_$count.nii.gz
 
-    @ count++
+    set count    = `echo $count    | awk '{ printf("%04d\n", $1 + 1) }'`
     set count_za = `echo $count_za | awk '{ printf("%04d\n", $1 + 4) }'`
     set count_zb = `echo $count_zb | awk '{ printf("%04d\n", $1 + 4) }'`
     set count_zc = `echo $count_zc | awk '{ printf("%04d\n", $1 + 4) }'`
@@ -68,6 +69,11 @@ while ( $count <= $new_nz_zerod )
 end
 
 fslmerge -z $2 $outdir/killme.zmean_slice_*
+
+# check to make sure slice thickness is 5 ... used because there is a bug for single tau-volumes (used for reg purposes)
+fslhd -x $2 > $outdir/tmp_hdr_main.txt
+sed "s/dz =.*/dz = \'5\'/" $outdir/tmp_hdr_main.txt > $outdir/hdr_main.txt
+fslcreatehd $outdir/hdr_main.txt $2
 
 rm -r $outdir
 
