@@ -1,6 +1,5 @@
 #!/bin/csh
 # Alan Stone 2016
-# averages the sub-slices acquired using GESEPI
 
 if ( ${#argv} != 2 ) then
 	echo usage: x.zaverage ase_in_filename ase_out_filename
@@ -47,7 +46,7 @@ while ( $count <= $new_nz_zerod )
 
     ## Change the slice thickness (dz) in first slice ($count) header and copy to others
     fslhd -x $outdir/killme._slice_$count_za.nii.gz > $outdir/tmp_hdr_$count.txt
-    sed "s/dz =.*/dz = \'5\'/" $outdir/tmp_hdr_$count.txt > $outdir/hdr_$count.txt
+    sed "s/dz =.*/dz = \'7.5\'/" $outdir/tmp_hdr_$count.txt > $outdir/hdr_$count.txt
     fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_za.nii.gz
     fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_zb.nii.gz
     fslcreatehd $outdir/hdr_$count.txt $outdir/killme._slice_$count_zc.nii.gz
@@ -72,9 +71,17 @@ fslmerge -z $2 $outdir/killme.zmean_slice_*
 
 # check to make sure slice thickness is 5 ... used because there is a bug for single tau-volumes (used for reg purposes)
 fslhd -x $2 > $outdir/tmp_hdr_main.txt
-sed "s/dz =.*/dz = \'5\'/" $outdir/tmp_hdr_main.txt > $outdir/hdr_main.txt
+
+sed "s/nz =.*/nz = \'$new_nz\'/" $outdir/tmp_hdr_main.txt > $outdir/hdr_main.txt
+sed "s/dz =.*/dz = \'7.5\'/" $outdir/tmp_hdr_main.txt > $outdir/hdr_main.txt
+
+#sed '/sto_xyz_matrix =/s/1.25/7.5/g' $outdir/tmp_hdr_main.txt > $outdir/hdr_main.txt
+#sed 's/[^[:space:]]*/NEW/'25
 fslcreatehd $outdir/hdr_main.txt $2
+# for the time being delete the orientation
+fslorient -deleteorient $2
 
 rm -r $outdir
+
 
 echo ... Outputting z-averaged dataset $2

@@ -11,15 +11,24 @@ set end_tau = 64 # end_tau [ms] is the value of tau for last volume
 set spin_echo_id = 7 # spin_echo_id is volume index of spin-echo [NB starts at 0]
 
 ## Example 2 ... commment out Example 1 varibles and uncomment these to run
-#set ase_fname = images_004_npbep2dasestdavic1001.nii.gz
-#set ase_outname = ase.nii.gz
-#set start_tau = -16 # start_tau [ms] is the value of tau for first volume
-#set delta_tau = 8 # delta_tau [ms] is tau step size
-#set end_tau = 64 # end_tau [ms] is the value of tau for last volume
-#set spin_echo_id = 2 # spin_echo_id is volume index of spin-echo [NB starts at 0]
+# set ase_fname = ase_prisma.nii.gz
+# set ase_outname = ase.nii.gz
+# set start_tau = -16 # start_tau [ms] is the value of tau for first volume
+# set delta_tau = 8 # delta_tau [ms] is tau step size
+# set end_tau = 64 # end_tau [ms] is the value of tau for last volume
+# set spin_echo_id = 2 # spin_echo_id is volume index of spin-echo [NB starts at 0]
 
 # Average sub-slices in GESEPI slab
-./x.zaverage $ase_fname $ase_outname
+x.zaverage $ase_fname $ase_outname
 
 # Make parameter maps 
-./x.qbold_make $ase_outname $start_tau $delta_tau $end_tau $spin_echo_id
+x.qbold_make $ase_outname $start_tau $delta_tau $end_tau $spin_echo_id
+
+# NOTES:
+# run.qbold_make is just a wrapper to run the example
+# Add x.zaverage and x.qbold_make to shell path
+# Add MatLab path (line 48) so you can run from command line
+# add the ase_qbold_3d function to matlab path in setup.m
+# Possible changes ...
+# - give option for output directory name in x.qbold_make
+# - don't bother with the number counter when looping over voxels in ase_qbold_3d
