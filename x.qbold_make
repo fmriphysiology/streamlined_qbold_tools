@@ -44,8 +44,13 @@ if ($viewer == 1) fslview $outdir/brain.mc.$ase_fname $outdir/brain.se_mask.nii.
 
 echo ... making parameter maps in MatLab ...
 ## Make parameter maps in MatLab
+set matlabexec = `which matlab`
+set rootdir = `dirname $0`
+set abs_rootdir = `cd $rootdir && pwd`
+echo MATLAB sripts located in $abs_rootdir
+
 cd $outdir
-/Applications/MATLAB_R2015b.app/bin/matlab -nosplash -nodesktop -r "ase_qbold_3d('brain.mc.$ase_fname',$start_tau,$delta_tau,$end_tau,1); exit"
+$matlabexec -nosplash -nodesktop -r "addpath('$abs_rootdir'); addpath('$FSLDIR/etc/matlab'); ase_qbold_3d('brain.mc.$ase_fname',$start_tau,$delta_tau,$end_tau,1); exit"
 cd ..
 
 echo ... qBOLD parameter maps output to $outdir

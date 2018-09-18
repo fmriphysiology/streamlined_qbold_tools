@@ -33,6 +33,7 @@ set new_nz_zerod = `expr $new_nz - 1`
 fslslice $1 $outdir/killme.
 
 # slice counters for loop
+set counter = 0
 set count = `printf "%04d"  0`
 set count_za = `printf "%04d"  0`
 set count_zb = `printf "%04d"  1`
@@ -40,9 +41,9 @@ set count_zc = `printf "%04d"  2`
 set count_zd = `printf "%04d"  3`
 
 # Mean over blocks of 4 slices
-while ( $count <= $new_nz_zerod )
+while ( $counter <= $new_nz_zerod )
 
-    echo  ... Averaging sub-slices in slab $count ...
+    echo  ... Averaging sub-slices in slab $counter ...
 
     ## Change the slice thickness (dz) in first slice ($count) header and copy to others
     fslhd -x $outdir/killme._slice_$count_za.nii.gz > $outdir/tmp_hdr_$count.txt
@@ -59,6 +60,7 @@ while ( $count <= $new_nz_zerod )
         -div 4 \
         $outdir/killme.zmean_slice_$count.nii.gz
 
+	@ counter++
     set count    = `echo $count    | awk '{ printf("%04d\n", $1 + 1) }'`
     set count_za = `echo $count_za | awk '{ printf("%04d\n", $1 + 4) }'`
     set count_zb = `echo $count_zb | awk '{ printf("%04d\n", $1 + 4) }'`
