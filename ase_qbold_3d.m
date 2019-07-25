@@ -37,24 +37,22 @@ else
 ln_Sase = log(V); 
 ln_Sase(isnan(ln_Sase)) = 0; 
 ln_Sase(isinf(ln_Sase)) = 0;
+ln_Saser = reshape(ln_Sase,x*y*z,v);
 
 Tc = 0.015; % cutoff time for monoexponential regime [s]
 tau_lineID = find(tau > Tc); % tau's to be used for R2' fitting  
-w = 1./tau(1,tau_lineID)'; % weightings for lscov
+s0_id = find(tau == 0); % find spin echo index
+%w = 1./tau(tau_lineID)'; % weightings for lscov
 p = zeros(x,y,z,2); 
 
-for xID = 1:x
-    for yID = 1:y
-        for zID = 1:z
-            fprintf('xID%d ; yID%d ; zID%d \n',xID,yID,zID) 
-            %% LSCOV: fit linear regime
-            X = [ones(length(tau(1,tau_lineID)'),1) tau(1,tau_lineID)'];
-            Y = squeeze(ln_Sase(xID,yID,zID,tau_lineID));
+%% LSCOV: fit linear regime
+X = [ones(size(tau(tau_lineID)')) -tau(tau_lineID)' ones(size(tau(tau_lineID)'))];
+X = [0 0 1; X];
 
-            p(xID,yID,zID,:) = flipud(lscov(X,Y,w));        
-        end
-    end
-end
+Y = ln_Saser(:,tau_lineID)';
+Y = [ln_Saser(:,s0_id)'; Y];
+
+p = lscov(X,Y); %no weighting
 
 range_r2p = [0 7];
 range_dbv = [0 0.12];
@@ -62,10 +60,9 @@ range_oef = [0 1.0];
 range_dhb = [0 10];
 
 % Calculate Physiological Parameters
-s0_id = find(tau == 0);
-r2p = -p(:,:,:,1); 
-c = p(:,:,:,2);
-dbv = c - ln_Sase(:,:,:,s0_id);
+dbv = reshape(p(1,:),x,y,z);
+r2p = reshape(p(2,:),x,y,z); 
+s0 = reshape(p(3,:),x,y,z); 
 oef = r2p./(dbv.*gamma.*(4./3).*pi.*dChi0.*Hct.*B0);
 dhb = r2p./(dbv.*gamma.*(4./3).*pi.*dChi0.*B0.*k);
 

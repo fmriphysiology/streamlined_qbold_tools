@@ -2,13 +2,15 @@
 # Alan Stone 2016
 # Run the script to make qBOLD parameter maps (R2', DBV, OEF & [dHb]) from FLAIR-GASE data
 
+codedir=`dirname $0` #assume that other scripts are in the same directory
+
 ## Example 1
-set ase_fname = ase_highres.nii.gz
+set ase_fname = images_043_npbqboldstdavic1001.nii.gz
 set ase_outname = ase.nii.gz
-set start_tau = -28 # start_tau [ms] is the value of tau for first volume
-set delta_tau = 4 # delta_tau [ms] is tau step size
+set start_tau = -16 # start_tau [ms] is the value of tau for first volume
+set delta_tau = 8 # delta_tau [ms] is tau step size
 set end_tau = 64 # end_tau [ms] is the value of tau for last volume
-set spin_echo_id = 7 # spin_echo_id is volume index of spin-echo [NB starts at 0]
+set spin_echo_id = 3 # spin_echo_id is volume index of spin-echo [NB starts at 0]
 
 ## Example 2 ... commment out Example 1 varibles and uncomment these to run
 # set ase_fname = ase_prisma.nii.gz

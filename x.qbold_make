@@ -35,6 +35,10 @@ echo ... running registrations and brain extractions ...
 fslroi $ase_fname $outdir/se.nii.gz $spin_echo_id 1
 # motion correction
 mcflirt -cost mutualinfo -dof 6 -reffile $outdir/se.nii.gz -in $ase_fname -out $outdir/mc.$ase_fname
+# smoothing
+#fwhm = 2.355 sigma
+#sigma = 1
+fslmaths $outdir/mc.$ase_fname -s 1 $outdir/mc.$ase_fname
 # mask
 bet $outdir/se.nii.gz $outdir/brain.se.nii.gz -m -f 0.3
 # apply mask to volreg'd files
